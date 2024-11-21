@@ -129,7 +129,8 @@ if uploaded_file:
         st.sidebar.write("🔧 Điều chỉnh các thông số ảnh.")
         
         # Lưu ảnh gốc để khôi phục lại
-        image_goc = st.session_state.original_image = edited_image.copy()
+        image_goc = image.copy()
+        st.session_state.original_image = edited_image.copy()
 
         # Thiết lập giá trị trung tính cho các thông số
         if "filters" not in st.session_state:
