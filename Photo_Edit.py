@@ -24,7 +24,7 @@ if uploaded_file:
 
 
     # Tạo một slider cho người dùng để điều chỉnh tỷ lệ thu nhỏ/phóng to ảnh
-    scale_factor = st.slider("Chỉnh tỷ lệ ảnh:", 0.01, 1.5, 0.5, 0.05)  # Từ 10% đến 150% với bước 10%
+    scale_factor = st.slider("Chỉnh tỷ lệ ảnh:", 0.01, 1.5, 1.0, 0.05)  # Từ 10% đến 150% với bước 10%
 
     # Tính toán kích thước mới
     width, height = image.size
@@ -35,7 +35,7 @@ if uploaded_file:
     image_resized = image.resize((new_width, new_height))
 
     # Hiển thị ảnh cần chỉnh sửa
-    st.image(image_resized, caption="Ảnh gốc", use_container_width=False)
+    #st.image(image_resized, caption="Ảnh gốc", use_container_width=False)
 
     # Tạo ảnh tạm để lưu thay đổi
     edited_image = image.copy()
@@ -43,29 +43,26 @@ if uploaded_file:
     # Tiêu đề thanh bên
     st.sidebar.title("🎨 Tùy chỉnh ảnh")
 
-    # Tính năng cắt ảnh với lớp phủ có thể kéo thả
     if st.sidebar.checkbox("✂️ Cắt ảnh"):
         st.sidebar.write("Kéo thả lớp phủ để chọn vùng cắt.")
 
         # Chọn loại cắt
         shape_option = st.sidebar.radio(
             "Chọn hình dạng cắt",
-            [ "Hình chữ nhật", "Hình tròn"]
+            ["Hình chữ nhật", "Hình tròn"]
         )
 
         # Nếu người dùng chọn cắt hình chữ nhật
         if shape_option == "Hình chữ nhật":
             st.sidebar.write("Kéo thả lớp phủ để chọn vùng cắt.")
-            # Chuyển đổi ảnh gốc sang định dạng numpy array
-            background_image = np.array(edited_image)
             canvas_result = st_canvas(
                 fill_color="rgba(0, 0, 0, 0.1)",        # màu lớp phủ
                 stroke_width=1,                         # độ dày viền
                 stroke_color="#FFFFFF",                 # màu viền 
                 background_image=edited_image,          
                 update_streamlit=True,
-                height=background_image.shape[0],
-                width=background_image.shape[1],
+                height=edited_image.height,
+                width=edited_image.width,
                 drawing_mode="rect",                    # chế độ vẽ hình chữ nhật
                 key="crop_canvas_rect",                 # khóa 
             )
@@ -81,15 +78,14 @@ if uploaded_file:
         # Nếu người dùng chọn cắt hình tròn
         elif shape_option == "Hình tròn":
             st.sidebar.write("Kéo thả lớp phủ để chọn vùng cắt hình tròn.")
-            background_image = np.array(edited_image)
             canvas_result = st_canvas(
                 fill_color="rgba(0, 0, 0, 0.1)",  
                 stroke_width=1,                  
                 stroke_color="#FFFFFF",        
                 background_image=edited_image,   
                 update_streamlit=True,
-                height=background_image.shape[0],
-                width=background_image.shape[1],
+                height=edited_image.height,
+                width=edited_image.width,
                 drawing_mode="circle",  
                 key="crop_canvas_circle",
             )
@@ -97,7 +93,7 @@ if uploaded_file:
             if canvas_result.json_data is not None:
                 circles = canvas_result.json_data.get('objects', [])
                 if circles:
-                    # Lấy đối tượng vòng tròn đầu tiên (hoặc vòng tròn mong muốn nếu được phép nhiều)
+                    # Lấy đối tượng vòng tròn đầu tiên
                     circle = circles[0]
                     x, y = circle['left'], circle['top']
                     radius = circle['radius']
@@ -109,16 +105,16 @@ if uploaded_file:
                         radius = int(radius)
                         
                         # Tạo mặt nạ hình tròn
-                        mask = Image.new("L", (2 * radius, 2 * radius), 0)  # Sử dụng bán kính dương, hợp lệ
+                        mask = Image.new("L", (2 * radius, 2 * radius), 0)
                         draw = ImageDraw.Draw(mask)
-                        draw.ellipse((0, 0, 2 * radius, 2 * radius), fill=255)  # Vẽ vòng tròn trong mặt nạ
+                        draw.ellipse((0, 0, 2 * radius, 2 * radius), fill=255)
                         
                         # Cắt hình ảnh bằng mặt nạ hình tròn
                         cropped_image = edited_image.crop((x, y, x + 2 * radius, y + 2 * radius))
                         
                         # Tạo ảnh mới nền trong suốt cho ảnh cắt hình tròn
-                        circular_image = Image.new("RGBA", (2 * radius, 2 * radius), (255, 255, 255, 0))  # Nền trong suốt
-                        circular_image.paste(cropped_image, (0, 0), mask)  # Áp dụng mặt nạ cho ảnh đã cắt
+                        circular_image = Image.new("RGBA", (2 * radius, 2 * radius), (255, 255, 255, 0))
+                        circular_image.paste(cropped_image, (0, 0), mask)
                         
                         # Update the edited image
                         edited_image = circular_image
@@ -146,30 +142,14 @@ if uploaded_file:
             }
 
         # Tạo các thanh trượt với giá trị từ session state
-        brightness = st.sidebar.slider(
-            "🌞 Độ sáng:", 0.0, 2.0, st.session_state.filters["brightness"], key="brightness"
-        )
-        exposure = st.sidebar.slider(
-            "🔆 Độ phơi sáng:", -1.0, 1.0, st.session_state.filters["exposure"], key="exposure"
-        )
-        contrast = st.sidebar.slider(
-            "🌓 Tương phản:", 0.0, 2.0, st.session_state.filters["contrast"], key="contrast"
-        )
-        highlight = st.sidebar.slider(
-            "✨ Vùng sáng:", 0.0, 1.0, st.session_state.filters["highlight"], key="highlight"
-        )
-        shadow = st.sidebar.slider(
-            "🌑 Đổ bóng:", 0.0, 1.0, st.session_state.filters["shadow"], key="shadow"
-        )
-        saturation = st.sidebar.slider(
-            "🎨 Độ bão hòa:", 0.0, 2.0, st.session_state.filters["saturation"], key="saturation"
-        )
-        hue_shift = st.sidebar.slider(
-            "🎭 Sắc thái:", -180, 180, st.session_state.filters["hue_shift"], key="hue_shift"
-        )
-        temperature = st.sidebar.slider(
-            "🔥 Nhiệt độ:", -100, 100, st.session_state.filters["temperature"], key="temperature"
-        )
+        brightness = st.sidebar.slider("🌞 Độ sáng:", 0.0, 2.0, st.session_state.filters["brightness"], key="brightness")
+        exposure = st.sidebar.slider("🔆 Độ phơi sáng:", -1.0, 1.0, st.session_state.filters["exposure"], key="exposure")
+        contrast = st.sidebar.slider("🌓 Tương phản:", 0.0, 2.0, st.session_state.filters["contrast"], key="contrast")
+        highlight = st.sidebar.slider("✨ Vùng sáng:", 0.0, 1.0, st.session_state.filters["highlight"], key="highlight")
+        shadow = st.sidebar.slider("🌑 Đổ bóng:", 0.0, 1.0, st.session_state.filters["shadow"], key="shadow")
+        saturation = st.sidebar.slider("🎨 Độ bão hòa:", 0.0, 2.0, st.session_state.filters["saturation"], key="saturation")
+        hue_shift = st.sidebar.slider("🎭 Sắc thái:", -180, 180, st.session_state.filters["hue_shift"], key="hue_shift")
+        temperature = st.sidebar.slider("🔥 Nhiệt độ:", -100, 100, st.session_state.filters["temperature"], key="temperature")
 
         # Cập nhật session state khi thanh trượt thay đổi
         st.session_state.filters.update({
@@ -246,7 +226,6 @@ if uploaded_file:
             st.rerun()  # Tải lại giao diện để đồng bộ
             edited_image = image_goc
             
-
     # Làm mờ
     if st.sidebar.checkbox("🌫️ Làm mờ"):
         blur_radius = st.sidebar.slider("Độ mờ :", 0, 10, 2)
@@ -265,13 +244,6 @@ if uploaded_file:
     if st.sidebar.checkbox("🖌️ Vẽ tự do"):
         st.sidebar.write("🖱️ Nhấn chuột và kéo để vẽ.")
         
-        # Đảm bảo ảnh nền là Pillow Image
-        if not isinstance(edited_image, Image.Image):
-            edited_image = Image.fromarray(np.array(edited_image))
-        
-        # Chuyển đổi ảnh gốc sang định dạng numpy array
-        background_image = np.array(edited_image)
-
         # Điều chỉnh thông số vẽ
         stroke_width = st.sidebar.slider("🖍️ Độ rộng nét vẽ:", 1, 20, 3)
         stroke_color = st.sidebar.color_picker("🎨 Màu nét vẽ:", "#ff0000")
@@ -283,8 +255,8 @@ if uploaded_file:
             stroke_color=stroke_color,           # Màu nét vẽ
             background_image=edited_image,       # Ảnh nền
             update_streamlit=True,
-            height=background_image.shape[0],
-            width=background_image.shape[1],
+            height=edited_image.height,
+            width=edited_image.width,
             drawing_mode="freedraw",
             key="canvas",
         )
