@@ -45,7 +45,7 @@ if uploaded_file:
 
     if st.sidebar.checkbox("✂️ Cắt ảnh"):
         st.sidebar.write("Kéo thả lớp phủ để chọn vùng cắt.")
-
+        image_back = edited_image
         # Chọn loại cắt
         shape_option = st.sidebar.radio(
             "Chọn hình dạng cắt",
@@ -59,10 +59,10 @@ if uploaded_file:
                 fill_color="rgba(0, 0, 0, 0.1)",        # màu lớp phủ
                 stroke_width=1,                         # độ dày viền
                 stroke_color="#FFFFFF",                 # màu viền 
-                background_image=edited_image,          
+                background_image=image_back,          
                 update_streamlit=True,
-                height=edited_image.height,
-                width=edited_image.width,
+                height=image_back.height,
+                width=image_back.width,
                 drawing_mode="rect",                    # chế độ vẽ hình chữ nhật
                 key="crop_canvas_rect",                 # khóa 
             )
@@ -82,10 +82,10 @@ if uploaded_file:
                 fill_color="rgba(0, 0, 0, 0.1)",  
                 stroke_width=1,                  
                 stroke_color="#FFFFFF",        
-                background_image=edited_image,   
+                background_image=image_back,   
                 update_streamlit=True,
-                height=edited_image.height,
-                width=edited_image.width,
+                height=image_back.height,
+                width=image_back.width,
                 drawing_mode="circle",  
                 key="crop_canvas_circle",
             )
@@ -248,15 +248,17 @@ if uploaded_file:
         stroke_width = st.sidebar.slider("🖍️ Độ rộng nét vẽ:", 1, 20, 3)
         stroke_color = st.sidebar.color_picker("🎨 Màu nét vẽ:", "#ff0000")
 
+        image_back = edited_image
+        
         # Thực hiện vẽ tự do
         canvas_result = st_canvas(
             fill_color="rgba(255, 165, 0, 0.3)",  # Màu tô
             stroke_width=stroke_width,           # Độ rộng nét vẽ
             stroke_color=stroke_color,           # Màu nét vẽ
-            background_image=edited_image,       # Ảnh nền
+            background_image=image_back,       # Ảnh nền
             update_streamlit=True,
-            height=edited_image.height,
-            width=edited_image.width,
+            height=image_back.height,
+            width=image_back.width,
             drawing_mode="freedraw",
             key="canvas",
         )
