@@ -87,4 +87,5 @@ DISTANCES = {
     ("Yên Bái", "Lào Cai"): 1.92,
     ("Lào Cai", "Lai Châu"): 2.55,
     ("Hà Giang", "Cao Bằng"): 2.91,
+    ("Hà Giang", "Yên Bái"): 3.1,
 }
