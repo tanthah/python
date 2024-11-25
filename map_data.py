@@ -89,7 +89,7 @@ DISTANCES = {
     ("Hà Giang", "Cao Bằng"): 2.91,
     ("Hà Giang", "Yên Bái"): 3.1,
     ("Hà Giang", "Lào Cai"): 2.4,
-    ("Hải Dươgn", "Hải Phòng"): 1,
+    ("Hải Dương", "Hải Phòng"): 1,
     ("Hà Tây", "Hà Nam"): 1.2,
     ("Bắc Giang", "Hải Dương"): 1.2,
     ("Bắc Giang", "Hà Nội"): 1.4,
