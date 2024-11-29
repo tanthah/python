@@ -2,7 +2,9 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from map_data import DISTANCES, PROVINCES
 from matplotlib.patches import Rectangle
+import heapq
 
+# thuật toán xây dựng bản đồ
 def build_graph_from_distances(distances):
     graph = {}
     for (start, end), weight in distances.items():
@@ -14,8 +16,9 @@ def build_graph_from_distances(distances):
         graph[end].append((start, weight))
     return graph
 
+# hàm dijkstra
 def dijkstra(graph, start, end):
-    import heapq
+    
     distances = {node: float('inf') for node in graph}
     previous_nodes = {node: None for node in graph}
     distances[start] = 0
@@ -69,6 +72,7 @@ else:
     x_center = st.sidebar.slider("Di chuyển ngang", 0.0, 15.0, 7.5, 0.1, key='x_center')
     y_center = st.sidebar.slider("Di chuyển dọc", 0.0, 12.0, 6.0, 0.1, key='y_center')
 
+# hiển thị bản đồ 
 def display_map(show_path=False):
     fig, ax = plt.subplots(figsize=(10, 8))
     
@@ -96,7 +100,6 @@ def display_map(show_path=False):
             ax.plot([x1, x2], [y1, y2], color="red", linewidth=2*zoom_level)
     
     ax.axis("off")
-    plt.figtext(0.02, 0.02, "Di chuyển: Sử dụng thanh trượt bên trái\nThu phóng: Điều chỉnh mức độ thu phóng", fontsize=8, ha='left')
     
     return fig
 
